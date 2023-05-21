@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 import pickle
@@ -13,9 +14,6 @@ from misskey_wrapper import MisskeyWrapper
 
 # set logger
 logger = logging.getLogger(__name__)
-
-
-msk = MisskeyWrapper("misskey.io", i = TOKEN, DEBUG=True)
 
 
 def get_datetime(createdAt: str):
@@ -50,7 +48,7 @@ def message_if_retry(state):
     logger.error("resetting DB was failed. retry after 30 sec.")
 
 @retry(wait=wait_fixed(30), retry=retry_if_exception_type(MisskeyAPIException), after=message_if_retry)
-def reset_db(redis_client: redis.StrictRedis, es: Elasticsearch):
+def init(redis_client: redis.StrictRedis, es: Elasticsearch, msk: MisskeyWrapper):
     redis_client.flushall()
 
     logger.info("reset DB")
@@ -94,6 +92,10 @@ if __name__ == "__main__":
 
     es = Elasticsearch(
         "https://localhost:9200",
-        ca_certs="~/elasticsearch-8.7.0/config/certs/http_ca.crt",
+        ca_certs="~/elasticsearch-8.7.1/config/certs/http_ca.crt",
         basic_auth=("elastic", ES_PASS)
     )
+
+    msk = MisskeyWrapper("misskey.io", i = TOKEN, DEBUG=True)
+
+    asyncio.run(init(redis_client, es, msk))

@@ -13,7 +13,7 @@ redis_client = redis.StrictRedis(connection_pool=connection_pool, decode_respons
 
 es = Elasticsearch(
     "https://localhost:9200",
-    ca_certs="~/elasticsearch-8.7.0/config/certs/http_ca.crt",
+    ca_certs="~/elasticsearch-8.7.1/config/certs/http_ca.crt",
     basic_auth=("elastic", ES_PASS)
 )
 
