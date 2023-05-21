@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/bash
 
 # start elasticsearch
 sudo screen -S es -X stuff 'exit'`echo -ne '\015'`
