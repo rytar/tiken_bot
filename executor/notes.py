@@ -23,16 +23,20 @@ def get_text(note: dict):
     return text
 
 def should_renote(note: dict):
-    res = requests.post("http://localhost:5001", data=note)
-    return res.json()["result"]
+    res = requests.post("http://localhost:5001", json=note)
+    data = res.json()
+    return data["result"]
 
 def runner(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: MisskeyWrapper):
+    print(note)
     if not note["renoteId"] is None and note["text"] is None:
         note = note["renote"]
     
     if should_renote(note):
         renoted_ids = [ pickle.loads(key) for key in redis_client.hkeys("notes") ]
         if note["id"] in renoted_ids: return
+
+        print(f"renote: {note['id']}")
 
         msk.notes_create(renote_id=note["id"])
 

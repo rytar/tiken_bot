@@ -1,3 +1,4 @@
+import json
 import numpy as np
 from flask import Flask, request, jsonify
 from fastText import FastTextModel
@@ -57,14 +58,15 @@ def get_similarity(note: dict):
 
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 
 @app.route('/', methods=["POST"])
 def root():
-    note = request.form.get("note", {}, type=dict)
+    note = request.get_json()
 
     fastText.update(note)
     similarity: float = get_similarity(note)
-    res: bool = get_similarity(note) >= np.cos(np.pi / 6)
+    res = bool(get_similarity(note) >= np.cos(np.pi / 6))
 
     return jsonify({"result": res, "similarity": similarity}), 200
 

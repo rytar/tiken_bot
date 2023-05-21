@@ -57,7 +57,7 @@ async def worker(ws_url: str, channels: dict[str, str]):
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
 
-                    requests.post("http://localhost:5000", data={ "type": event, "note": note })
+                    requests.post("http://localhost:5000", json={ "type": event, "note": note })
 
                     if DEBUG:
                         print(note["text"])

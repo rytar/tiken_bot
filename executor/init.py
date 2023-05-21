@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import json
 import logging
 import pickle
 import redis
@@ -38,8 +39,9 @@ def get_text(note: dict):
     return text
 
 def should_renote(note: dict):
-    res = requests.post("http://localhost:5001", data=note)
-    return res.json()["result"]
+    res = requests.post("http://localhost:5001", json=note)
+    data = res.json()
+    return data["result"]
 
 
 # reset Redis DB about renoted notes
@@ -96,6 +98,6 @@ if __name__ == "__main__":
         basic_auth=("elastic", ES_PASS)
     )
 
-    msk = MisskeyWrapper("misskey.io", i = TOKEN, DEBUG=True)
+    msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=True)
 
-    asyncio.run(init(redis_client, es, msk))
+    init(redis_client, es, msk)

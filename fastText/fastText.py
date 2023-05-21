@@ -79,7 +79,8 @@ class FastTextModel:
         return results
     
     def update_model(self):
-        self.logger.info("update model")
+        if self.logger:
+            self.logger.info("update model")
 
         lines = self._create_lines()
 
