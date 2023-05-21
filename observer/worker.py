@@ -1,4 +1,5 @@
 import json
+import requests
 from websockets.client import connect, WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
@@ -56,8 +57,10 @@ async def worker(ws_url: str, channels: dict[str, str]):
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
 
-                    print(note["text"])
+                    requests.post("http://localhost:5000", data={ "type": event, "note": note })
 
+                    if DEBUG:
+                        print(note["text"])
 
         except ConnectionClosed as e:
             continue
