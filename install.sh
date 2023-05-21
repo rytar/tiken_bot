@@ -1,3 +1,6 @@
+# install libraries
+pip install -r ./requirements.txt
+
 # install redis
 docker create --name redis-stack -p 6379:6379 redis/redis-stack:latest
 
