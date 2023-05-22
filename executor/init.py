@@ -1,7 +1,5 @@
-import asyncio
 import datetime
 import json
-import logging
 import pickle
 import redis
 import requests
@@ -9,9 +7,12 @@ from elasticsearch import Elasticsearch
 from misskey.exceptions import MisskeyAPIException
 from tenacity import retry, wait_fixed, retry_if_exception_type
 
-from config import TOKEN, ES_PASS
 from misskey_wrapper import MisskeyWrapper
 
+
+config = json.load("../config.json")
+TOKEN = config["TOKEN"]
+ES_PASS = config["ES_PASS"]
 
 def get_datetime(createdAt: str):
     return datetime.datetime.strptime(createdAt, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)

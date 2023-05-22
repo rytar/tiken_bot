@@ -1,9 +1,13 @@
 import asyncio
+import json
 import logging
 from uuid import uuid4
 
-from config import TOKEN
 from worker import worker
+
+
+config = json.load("../config.json")
+TOKEN = config["TOKEN"]
 
 # set logger
 logger = logging.getLogger(__name__)

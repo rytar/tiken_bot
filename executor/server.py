@@ -1,13 +1,17 @@
+import json
 import logging
 import redis
 from elasticsearch import Elasticsearch
 from flask import Flask, request
 
 from commands import process_query
-from config import TOKEN, ES_PASS
 from misskey_wrapper import MisskeyWrapper
 from notes import runner
 
+
+config = json.load("../config.json")
+TOKEN = config["TOKEN"]
+ES_PASS = config["ES_PASS"]
 
 # set logger
 logger = logging.getLogger(__name__)
