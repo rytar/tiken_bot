@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import requests
@@ -27,6 +28,22 @@ The form of messages from the stream as below:
 The reference is [here](https://misskey-hub.net/docs/api/streaming).
 """
 
+def should_renote(note: dict):
+    res = requests.post("http://localhost:5001", json=note)
+    data = res.json()
+    return data["result"]
+
+def send(url: str, event: str, note: dict):
+    if event == "mention":
+        requests.post(url, json={ "type": event, "note": note })
+    elif event == "note":
+        if not note["renoteId"] is None and note["text"] is None:
+            note = note["renote"]
+        
+        if should_renote(note):
+            requests.post(url, json={ "type": event, "note": note })
+
+
 async def worker(ws_url: str, channels: dict[str, str]):
     """
         The worker function which connect to the websocket and read the stream.
@@ -43,6 +60,9 @@ async def worker(ws_url: str, channels: dict[str, str]):
         Return:
             None
     """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
     async for ws in connect(ws_url):
         try:
             await connect_channels(ws, channels)
@@ -60,7 +80,7 @@ async def worker(ws_url: str, channels: dict[str, str]):
 
                     logger.info(f"{event}: {note['id']}")
 
-                    res = requests.post("http://localhost:5000", json={ "type": event, "note": note })
+                    loop.run_in_executor(None, send, "http://localhost:5000", event, note)
 
         except ConnectionClosed as e:
             logger.error(e)

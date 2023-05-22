@@ -7,7 +7,7 @@ from flask import Flask, request
 
 from commands import process_query
 from misskey_wrapper import MisskeyWrapper
-from notes import runner
+from notes import renote
 
 
 with open("../config.json") as f:
@@ -34,7 +34,7 @@ msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=DEBUG)
 
 def process(event: str, note: dict):
     if event == "note":
-        runner(note, redis_client, es, msk)
+        renote(note, redis_client, es, msk)
     elif event == "mention":
         process_query(note, es, msk)
 
