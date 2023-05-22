@@ -1,28 +1,56 @@
 #!/usr/bin/bash
 
+# for screen command
+if [ ! -d ~/.screendir ]; then
+    mkdir ~/.screendir
+fi
+chmod 700 ~/.screendir
+export SCREENDIR=$HOME/.screendir
+
+sudo pkill -f uwsgi -9
+
 # start elasticsearch
-sudo screen -S es -X stuff 'exit'`echo -ne '\015'`
-sudo screen -dmS es
-sudo screen -S es -X stuff '~/elasticsearch-8.7.1/bin/elasticsearch'`echo -ne '\015'`
+echo "starting Elasticsearch..."
+screen -S es -X quit
+sleep 2s
+screen -dmS es
+sleep 1s
+screen -S es -X stuff $HOME'/elasticsearch-8.7.1/bin/elasticsearch'`echo -ne '\015'`
+sleep 5s
 
 # start redis
 docker start redis-stack
 
 # start fastText server
+echo "starting fastText server..."
 cd ./fastText/
-sudo screen -S fastText -X stuff 'exit'`echo -ne '\015'`
-sudo screen -dmS fastText
-sudo screen -S fastText -X 'uwsgi --ini app.ini'`echo -ne '\015'`
+screen -S fastText -X quit
+sleep 2s
+screen -dmS fastText
+sleep 1s
+screen -S fastText -X stuff 'uwsgi --ini app.ini'`echo -ne '\015'`
+sleep 5s
 
 # start executor
 cd ../executor/
+echo "initializing executor server..."
 python init.py
-sudo screen -S executor -X stuff 'exit'`echo -ne '\015'`
-sudo screen -dmS executor
-sudo screen -S executor -X 'uwsgi --ini app.ini'`echo -ne '\015'`
+echo "starting executor server..."
+screen -S executor -X quit
+sleep 2s
+screen -dmS executor
+sleep 1s
+screen -S executor -X stuff 'uwsgi --ini app.ini'`echo -ne '\015'`
+sleep 2s
 
 # start observer
+echo "starting observer..."
 cd ../observer/
-sudo screen -S observer -X stuff 'exit'`echo -ne '\015'`
-sudo screen -dmS observer
-sudo screen -S observer -X 'python main.py'`echo -ne '\015'`
+screen -S observer -X quit
+sleep 2s
+screen -dmS observer
+sleep 1s
+screen -S observer -X stuff 'python main.py'`echo -ne '\015'`
+
+cd ../
+echo "successfully bot started!"

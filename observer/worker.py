@@ -62,8 +62,6 @@ async def worker(ws_url: str, channels: dict[str, str]):
 
                     res = requests.post("http://localhost:5000", json={ "type": event, "note": note })
 
-                    logger.info(f"{res.content}")
-
         except ConnectionClosed as e:
             logger.error(e)
             continue

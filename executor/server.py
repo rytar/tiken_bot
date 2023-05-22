@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import redis
@@ -9,9 +10,12 @@ from misskey_wrapper import MisskeyWrapper
 from notes import runner
 
 
-config = json.load("../config.json")
+with open("../config.json") as f:
+    config = json.loads(f.read())
+
 TOKEN = config["TOKEN"]
 ES_PASS = config["ES_PASS"]
+DEBUG = config["DEBUG"]
 
 # set logger
 logger = logging.getLogger(__name__)
@@ -26,7 +30,13 @@ es = Elasticsearch(
     basic_auth=("elastic", ES_PASS)
 )
 
-msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=True)
+msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=DEBUG)
+
+def process(event: str, note: dict):
+    if event == "note":
+        runner(note, redis_client, es, msk)
+    elif event == "mention":
+        process_query(note, es, msk)
 
 app = Flask(__name__)
 
@@ -38,10 +48,10 @@ def root():
 
     logger.info(f"{event}: {note['id']}")
 
-    if event == "note":
-        runner(note, redis_client, es, msk)
-    elif event == "mention":
-        process_query(note, es, msk)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    loop.run_in_executor(None, process, event, note)
 
     return "accepted", 200
 

@@ -82,7 +82,7 @@ class FastTextModel:
         if self.logger:
             self.logger.info("update model")
 
-        lines = self._create_lines()
+        lines = self.__create_lines()
 
         with open("./reactions.txt", 'w', encoding="utf-8") as f:
             f.write(lines)
