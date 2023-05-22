@@ -74,7 +74,6 @@ def root():
 
     fastText.update(note)
     similarity: float = get_similarity(note)
-
     res = bool(similarity >= np.cos(np.pi / 6))
 
     if res:
