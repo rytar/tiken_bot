@@ -95,7 +95,8 @@ if __name__ == "__main__":
     es = Elasticsearch(
         "https://localhost:9200",
         ca_certs="~/elasticsearch-8.7.1/config/certs/http_ca.crt",
-        basic_auth=("elastic", ES_PASS)
+        basic_auth=("elastic", ES_PASS),
+        request_timeout=30, max_retries=10, retry_on_timeout=True
     )
 
     msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=DEBUG)
