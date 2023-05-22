@@ -1,11 +1,12 @@
 import json
+import logging
 import requests
 from websockets.client import connect, WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
 
-DEBUG = __name__ == "__main__"
-
+# set logger
+logger = logging.getLogger(__name__)
 
 Msg = dict[str, str | dict[str, str | dict]]
 """
@@ -57,12 +58,14 @@ async def worker(ws_url: str, channels: dict[str, str]):
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
 
-                    requests.post("http://localhost:5000", json={ "type": event, "note": note })
+                    logger.info(f"{event}: {note['id']}")
 
-                    if DEBUG:
-                        print(note["text"])
+                    res = requests.post("http://localhost:5000", json={ "type": event, "note": note })
+
+                    logger.info(f"{res.content}")
 
         except ConnectionClosed as e:
+            logger.error(e)
             continue
 
 async def connect_channels(ws: WebSocketClientProtocol, channels: dict[str, str]):
@@ -76,11 +79,13 @@ async def connect_channels(ws: WebSocketClientProtocol, channels: dict[str, str]
         }))
 
 
-if DEBUG:
+if __name__ == "__main__":
     import asyncio
+    import json
     from uuid import uuid4
 
-    token = "Frrw5WXuzpSvZY1ZlOgzLeGPRYLWhmH4"
+    config = json.load("../config.json")
+    token = config["TOKEN"]
     ws_url = f"wss://misskey.io/streaming?i={token}"
 
     channels = {}

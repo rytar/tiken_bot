@@ -1,11 +1,16 @@
-import json
+import logging
 import numpy as np
 from flask import Flask, request, jsonify
 from fastText import FastTextModel
 
 from utils import get_reaction_name
 
-fastText = FastTextModel()
+
+# set logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename='fastText.log', encoding='utf-8', level=logging.INFO)
+
+fastText = FastTextModel(logger=logger)
 
 def get_reaction_vector(note: dict):
     total: int = np.sum(list(note["reactions"].values()))
@@ -68,7 +73,12 @@ def root():
     similarity: float = get_similarity(note)
     res = bool(get_similarity(note) >= np.cos(np.pi / 6))
 
-    return jsonify({"result": res, "similarity": similarity}), 200
+    if res:
+        logger.info(f"note {note['id']} should be renoted: {similarity}")
+    else:
+        logger.info(f"note {note['id']} should NOT be renoted: {similarity}")
+
+    return jsonify({ "result": res, "similarity": similarity }), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")

@@ -1,0 +1,5 @@
+{
+    "TOKEN": "Misskey API Token",
+    "ES_PASS": "Elasticsearch Password",
+    "DEBUG": true
+}

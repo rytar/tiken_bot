@@ -1,7 +1,5 @@
-import asyncio
 import datetime
 import json
-import logging
 import pickle
 import redis
 import requests
@@ -9,13 +7,12 @@ from elasticsearch import Elasticsearch
 from misskey.exceptions import MisskeyAPIException
 from tenacity import retry, wait_fixed, retry_if_exception_type
 
-from config import TOKEN, ES_PASS
 from misskey_wrapper import MisskeyWrapper
 
 
-# set logger
-logger = logging.getLogger(__name__)
-
+config = json.load("../config.json")
+TOKEN = config["TOKEN"]
+ES_PASS = config["ES_PASS"]
 
 def get_datetime(createdAt: str):
     return datetime.datetime.strptime(createdAt, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
@@ -46,21 +43,21 @@ def should_renote(note: dict):
 
 # reset Redis DB about renoted notes
 def message_if_retry(state):
-    logger.error(state)
-    logger.error("resetting DB was failed. retry after 30 sec.")
+    print(state)
+    print("resetting DB was failed. retry after 30 sec.")
 
 @retry(wait=wait_fixed(30), retry=retry_if_exception_type(MisskeyAPIException), after=message_if_retry)
 def init(redis_client: redis.StrictRedis, es: Elasticsearch, msk: MisskeyWrapper):
     redis_client.flushall()
 
-    logger.info("reset DB")
+    print("reset DB")
 
     MY_ID = msk.i()["id"]
 
     until_datetime = datetime.datetime.now(tz=datetime.timezone.utc)
 
     notes = msk.users_notes(MY_ID, include_replies=False, limit=100, until_date=until_datetime)
-    logger.info(f"get {len(notes)} notes")
+    print(f"get {len(notes)} notes")
 
     while len(notes) != 0:
         for note in notes:
@@ -86,7 +83,7 @@ def init(redis_client: redis.StrictRedis, es: Elasticsearch, msk: MisskeyWrapper
                     msk.notes_delete(note["id"])
 
         notes = msk.users_notes(MY_ID, include_replies=False, limit=100, until_date=until_datetime)
-        logger.info(f"get {len(notes)} notes")
+        print(f"get {len(notes)} notes")
 
 if __name__ == "__main__":
     connection_pool = redis.ConnectionPool(host="localhost", port=6379)

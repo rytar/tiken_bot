@@ -4,3 +4,4 @@ config.py
 notes.csv
 model.bin
 reactions.txt
+*.log
