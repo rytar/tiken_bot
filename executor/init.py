@@ -10,9 +10,12 @@ from tenacity import retry, wait_fixed, retry_if_exception_type
 from misskey_wrapper import MisskeyWrapper
 
 
-config = json.load("../config.json")
+with open("../config.json") as f:
+    config = json.loads(f.read())
+
 TOKEN = config["TOKEN"]
 ES_PASS = config["ES_PASS"]
+DEBUG = config["DEBUG"]
 
 def get_datetime(createdAt: str):
     return datetime.datetime.strptime(createdAt, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)
@@ -95,6 +98,6 @@ if __name__ == "__main__":
         basic_auth=("elastic", ES_PASS)
     )
 
-    msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=True)
+    msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=DEBUG)
 
     init(redis_client, es, msk)

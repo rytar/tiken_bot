@@ -6,7 +6,9 @@ from uuid import uuid4
 from worker import worker
 
 
-config = json.load("../config.json")
+with open("../config.json") as f:
+    config = json.loads(f.read())
+
 TOKEN = config["TOKEN"]
 
 # set logger
