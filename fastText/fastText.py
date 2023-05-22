@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import fasttext
 import logging
@@ -30,7 +31,7 @@ class FastTextModel:
             
         self.cnt = 0
         self.model = None
-        self.update_model()
+        asyncio.run(self.update_model())
 
     def update(self, note: dict):
         if note is not None and note["reactions"]:
@@ -44,7 +45,10 @@ class FastTextModel:
             
             if self.cnt > 50_000:
                 self.save()
-                self.update_model()
+
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_in_executor(None, self.update_model)
     
     def save(self):
         now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -78,7 +82,9 @@ class FastTextModel:
         
         return results
     
-    def update_model(self):
+    async def update_model(self):
+        self.cnt = 0
+
         if self.logger:
             self.logger.info("update model")
 
@@ -91,7 +97,6 @@ class FastTextModel:
         new_model.save_model("model.bin")
 
         self.model = fasttext.load_model("model.bin")
-        self.cnt = 0
     
     def get_word_vector(self, word):
         if word is None:
