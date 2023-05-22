@@ -1,4 +1,5 @@
 import json
+import logging
 import requests
 from websockets.client import connect, WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
@@ -6,6 +7,7 @@ from websockets.exceptions import ConnectionClosed
 
 DEBUG = __name__ == "__main__"
 
+logger = logging.getLogger(__name__)
 
 Msg = dict[str, str | dict[str, str | dict]]
 """
@@ -57,7 +59,11 @@ async def worker(ws_url: str, channels: dict[str, str]):
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
 
-                    requests.post("http://localhost:5000", json={ "type": event, "note": note })
+                    logger.info(f"{event}: {note['id']}")
+
+                    res = requests.post("http://localhost:5000", json={ "type": event, "note": note })
+
+                    logger.info(f"{res.content}")
 
                     if DEBUG:
                         print(note["text"])

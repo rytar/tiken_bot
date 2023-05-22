@@ -1,3 +1,4 @@
+import logging
 import redis
 from elasticsearch import Elasticsearch
 from flask import Flask, request
@@ -7,6 +8,10 @@ from config import TOKEN, ES_PASS
 from misskey_wrapper import MisskeyWrapper
 from notes import runner
 
+
+# set logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename='executor.log', encoding='utf-8', level=logging.INFO)
 
 connection_pool = redis.ConnectionPool(host="localhost", port=6379)
 redis_client = redis.StrictRedis(connection_pool=connection_pool, decode_responses=False)
@@ -23,8 +28,11 @@ app = Flask(__name__)
 
 @app.route('/', methods=["POST"])
 def root():
-    event = request.form.get("type", '', type=str)
-    note = request.form.get("note", {}, type=dict)
+    req = request.get_json()
+    event = req["type"]
+    note = req["note"]
+
+    logger.info(f"{event}: {note['id']}")
 
     if event == "note":
         runner(note, redis_client, es, msk)

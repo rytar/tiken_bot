@@ -28,7 +28,6 @@ def should_renote(note: dict):
     return data["result"]
 
 def runner(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: MisskeyWrapper):
-    print(note)
     if not note["renoteId"] is None and note["text"] is None:
         note = note["renote"]
     
