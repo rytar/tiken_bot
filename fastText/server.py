@@ -69,9 +69,14 @@ app.config['JSON_AS_ASCII'] = False
 def root():
     note = request.get_json()
 
+    logging.info(note)
+
     fastText.update(note)
     similarity: float = get_similarity(note)
-    res = bool(get_similarity(note) >= np.cos(np.pi / 6))
+    
+    logging.info(similarity)
+    res = bool(similarity >= np.cos(np.pi / 6))
+    logging.info(res)
 
     if res:
         logger.info(f"note {note['id']} should be renoted: {similarity}")
