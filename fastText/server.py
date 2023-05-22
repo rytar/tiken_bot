@@ -69,9 +69,11 @@ app.config['JSON_AS_ASCII'] = False
 def root():
     note = request.get_json()
 
+    if not note["reactions"]:
+        return jsonify({ "result": False, "similarity": 0.0 }), 200
+
     fastText.update(note)
     similarity: float = get_similarity(note)
-
     res = bool(similarity >= np.cos(np.pi / 6))
 
     if res:
