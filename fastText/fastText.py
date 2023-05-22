@@ -57,7 +57,7 @@ class FastTextModel:
     def get_data(self):
         return self.outputs
     
-    def _create_lines(self):
+    def __create_lines(self):
         p = regex.compile(r"^([^:]+):(\d+)$")
         results = ''
         for reactions in self.outputs["reactions"]:
