@@ -46,8 +46,6 @@ def root():
     event = req["type"]
     note = req["note"]
 
-    logger.info(f"{event}: {note['id']}")
-
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 

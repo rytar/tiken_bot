@@ -1,7 +1,12 @@
+import logging
 import pickle
 import redis
 from elasticsearch import Elasticsearch
 from misskey_wrapper import MisskeyWrapper
+
+
+# set logger
+logger = logging.getLogger(__name__)
 
 def get_text(note: dict):
     text: str = ''
@@ -25,11 +30,11 @@ def renote(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: Misske
     renoted_ids = [ pickle.loads(key) for key in redis_client.hkeys("notes") ]
     if note["id"] in renoted_ids: return
 
-    print(f"renote: {note['id']}")
-
-    msk.notes_create(renote_id=note["id"])
+    logger.info(f"renote: {note['id']}")
 
     redis_client.hset("notes", pickle.dumps(note["id"]), pickle.dumps(note))
     
     text = get_text(note)
     es.index(index="notes", id=note["id"], document={"text": text, "id": note["id"]})
+    
+    msk.notes_create(renote_id=note["id"])
