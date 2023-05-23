@@ -2,7 +2,6 @@ import datetime
 import json
 import pickle
 import redis
-import requests
 from elasticsearch import Elasticsearch
 from misskey.exceptions import MisskeyAPIException
 from tenacity import retry, wait_fixed, retry_if_exception_type
@@ -38,11 +37,6 @@ def get_text(note: dict):
     
     return text
 
-def should_renote(note: dict):
-    res = requests.post("http://localhost:5001", json=note)
-    data = res.json()
-    return data["result"]
-
 
 # reset Redis DB about renoted notes
 def message_if_retry(state):
@@ -72,7 +66,7 @@ def init(redis_client: redis.StrictRedis, es: Elasticsearch, msk: MisskeyWrapper
 
                 # 条件を満たしていない or 多重RNならRN解除
                 renoted_ids = [ pickle.loads(key) for key in redis_client.hkeys("notes") ]
-                if not should_renote(renoted_note) or renoted_note["id"] in renoted_ids:
+                if renoted_note["id"] in renoted_ids:
                     msk.notes_delete(note["id"])
                 else:
                     redis_client.hset("notes", pickle.dumps(renoted_note["id"]), pickle.dumps(renoted_note))
