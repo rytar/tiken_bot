@@ -35,12 +35,14 @@ def should_renote(note: dict):
 
 def send(url: str, event: str, note: dict):
     if event == "mention":
+        logger.info(f"mention: {note['id']}")
         requests.post(url, json={ "type": event, "note": note })
     elif event == "note":
         if not note["renoteId"] is None and note["text"] is None:
             note = note["renote"]
         
         if should_renote(note):
+            logger.info(f"tiken: {note['id']}")
             requests.post(url, json={ "type": event, "note": note })
 
 
@@ -77,8 +79,6 @@ async def worker(ws_url: str, channels: dict[str, str]):
 
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
-
-                    logger.info(f"{event}: {note['id']}")
 
                     loop.run_in_executor(None, send, "http://localhost:5000", event, note)
 
