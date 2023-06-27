@@ -38,3 +38,5 @@ def renote(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: Misske
     es.index(index="notes", id=note["id"], document={"text": text, "id": note["id"]})
     
     msk.notes_create(renote_id=note["id"])
+
+    logger.info(f"renoted: {note['id']}")
