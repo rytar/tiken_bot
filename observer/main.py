@@ -4,7 +4,12 @@ import logging
 from uuid import uuid4
 
 from worker import worker
-from config import TOKEN
+
+
+with open("./config.json") as f:
+    config = json.loads(f.read())
+
+TOKEN = config["TOKEN"]
 
 # set logger
 logger = logging.getLogger(__name__)

@@ -1,5 +1,5 @@
 {
-    "TOKEN": "Frrw5WXuzpSvZY1ZlOgzLeGPRYLWhmH4",
-    "ES_PASS": "VaYB_1zdrxGc6V6UZlur",
+    "TOKEN": "Misskey API Token",
+    "ES_PASS": "Elasticsearch Password",
     "DEBUG": true
 }

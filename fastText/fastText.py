@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import fasttext
+import json
 import logging
 import numpy as np
 import os
@@ -8,6 +9,12 @@ import pandas as pd
 import regex
 
 from utils import get_text, get_reaction_name
+
+
+with open("./config.json") as f:
+    config = json.loads(f.read())
+
+DEBUG = config["DEBUG"]
 
 class FastTextModel:
 
@@ -42,6 +49,9 @@ class FastTextModel:
 
             if len(self.outputs) > 100_000:
                 self.outputs = self.outputs.iloc[-100_000:]
+
+            if DEBUG and self.cnt % 100 == 99:
+                print(self.outputs)
             
             if self.cnt > 50_000:
                 self.save()
