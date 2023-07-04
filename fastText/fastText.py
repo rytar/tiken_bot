@@ -46,6 +46,9 @@ class FastTextModel:
     def update(self, note: dict):
         if note is not None and note["reactions"]:
             s = [ get_text(note), ' '.join([ f"{get_reaction_name(k)}:{v}" for k, v in note["reactions"].items() if get_reaction_name(k) ]) ]
+            if note["id"] in self.outputs.index:
+                self.outputs.drop(index=note["id"])
+                
             self.outputs.loc[note["id"]] = s
 
             self.cnt += 1
