@@ -34,9 +34,11 @@ msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=DEBUG)
 
 def process(event: str, note: dict):
     if event == "note":
-        renote(note, redis_client, es, msk)
+        return renote(note, redis_client, es, msk)
     elif event == "mention":
-        process_query(note, es, msk)
+        return process_query(note, es, msk)
+    else:
+        return "unkwon event"
 
 app = Flask(__name__)
 
@@ -48,9 +50,9 @@ def root():
 
     logger.info(f"{event}: {note['id']}")
 
-    process(event, note)
+    status = process(event, note)
 
-    return "accepted", 200
+    return status, 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")

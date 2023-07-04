@@ -20,11 +20,11 @@ cmd_pattern = regex.compile(r"^\s*/([^\s]+)[\s\n]+(.+)?$", regex.DOTALL)
 word_group_pattern = regex.compile(r"\s*\|\s*")
 word_pattern = regex.compile(r"\s+")
 
-def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper):
+def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper) -> str:
     global query_counts, query_timestamp
 
     # botには反応しない
-    if note["user"]["isBot"]: return
+    if note["user"]["isBot"]: return "user is bot"
 
     is_direct = note["visibility"] == "specified"
     user_id = note["userId"]
@@ -36,7 +36,7 @@ def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper):
     m = cmd_pattern.match(command)
     if m is None:
         # misskey_notes_create(text="入力形式が正しくありません。`/command args`の形で入力してください。", visibility="specified", visible_user_ids=[user_id], reply_id=note["id"])
-        return
+        return "invalid format"
 
     # コマンド利用のレートリミット設定（10クエリ/秒）
     now = datetime.datetime.now(tz=datetime.timezone.utc)
@@ -53,7 +53,7 @@ def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper):
             visible_user_ids=[user_id] if is_direct else None,
             reply_id=note["id"]
         )
-        return
+        return "rate limit"
 
     query_counts += 1
     
@@ -79,7 +79,7 @@ def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper):
                 visible_user_ids=[user_id] if is_direct else None,
                 reply_id=note["id"]
             )
-            return
+            return "search keywords were not found"
 
         arg = arg.strip()
         logger.info(f"get search query: {arg}")
@@ -127,3 +127,7 @@ def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper):
             visible_user_ids=[user_id] if is_direct else None,
             reply_id=note["id"]
         )
+
+        return "the command is not exist"
+    
+    return "successfully processed the query"

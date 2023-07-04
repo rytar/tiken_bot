@@ -28,7 +28,9 @@ def get_text(note: dict):
 
 def renote(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: MisskeyWrapper):
     renoted_ids = [ pickle.loads(key) for key in redis_client.hkeys("notes") ]
-    if note["id"] in renoted_ids: return
+    if note["id"] in renoted_ids:
+        logger.info("already renoted")
+        return "already renoted"
 
     logger.info(f"should renote: {note['id']}")
 
@@ -40,3 +42,5 @@ def renote(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: Misske
     msk.notes_create(renote_id=note["id"])
 
     logger.info(f"renoted: {note['id']}")
+
+    return "successfully renoted"
