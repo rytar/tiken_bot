@@ -48,10 +48,7 @@ def root():
 
     logger.info(f"{event}: {note['id']}")
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    loop.run_in_executor(None, process, event, note)
+    process(event, note)
 
     return "accepted", 200
 
