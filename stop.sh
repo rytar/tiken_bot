@@ -9,4 +9,6 @@ screen -S fastText -X quit
 screen -S executor -X quit
 screen -S observer -X quit
 
+screen -wipe
+
 echo "successfully stopped!"

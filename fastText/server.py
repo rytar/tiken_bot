@@ -8,7 +8,7 @@ from utils import get_reaction_name
 
 # set logger
 logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename='fastText.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename="./fastText.log", encoding="utf-8", level=logging.INFO)
 
 fastText = FastTextModel(logger=logger)
 

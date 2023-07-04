@@ -31,12 +31,14 @@ The reference is [here](https://misskey-hub.net/docs/api/streaming).
 def should_renote(note: dict):
     res = requests.post("http://localhost:5001", json=note)
     data = res.json()
+    print(data)
     return data["result"]
 
 def send(url: str, event: str, note: dict):
     if event == "mention":
         logger.info(f"mention: {note['id']}")
         requests.post(url, json={ "type": event, "note": note })
+
     elif event == "note":
         if not note["renoteId"] is None and note["text"] is None:
             note = note["renote"]
@@ -88,6 +90,8 @@ async def worker(ws_url: str, channels: dict[str, str]):
 
 async def connect_channels(ws: WebSocketClientProtocol, channels: dict[str, str]):
     for uuid, channel in channels.items():
+        logger.info(f"connect to {channel} with id: {uuid}")
+
         await ws.send(json.dumps({
             "type": "connect",
             "body": {

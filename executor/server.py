@@ -19,7 +19,7 @@ DEBUG = config["DEBUG"]
 
 # set logger
 logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename='executor.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename="./executor.log", encoding="utf-8", level=logging.INFO)
 
 connection_pool = redis.ConnectionPool(host="localhost", port=6379)
 redis_client = redis.StrictRedis(connection_pool=connection_pool, decode_responses=False)
