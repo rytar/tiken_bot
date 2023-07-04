@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import pickle
 import redis
 from elasticsearch import Elasticsearch
@@ -7,6 +8,11 @@ from misskey.exceptions import MisskeyAPIException
 from tenacity import retry, wait_fixed, retry_if_exception_type
 
 from misskey_wrapper import MisskeyWrapper
+
+
+# set logger
+logger = logging.getLogger(__name__)
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename="./init.log", encoding="utf-8", level=logging.INFO)
 
 
 with open("../config.json") as f:
