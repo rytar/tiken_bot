@@ -11,7 +11,7 @@ import regex
 from utils import get_text, get_reaction_name
 
 
-with open("./config.json") as f:
+with open("../config.json") as f:
     config = json.loads(f.read())
 
 DEBUG = config["DEBUG"]
@@ -23,10 +23,13 @@ class FastTextModel:
         self.interval = interval
 
         self.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+        self.max_notes = 100_000
+        self.save_timing = 50_000
 
         self.columns = [ "id", "text", "reactions" ]
         if os.path.exists(self.save_file):
-            self.outputs = pd.read_csv(self.save_file, index_col=0)
+            self.outputs = pd.read_csv(self.save_file, index_col=0, engine="python", on_bad_lines="warn")
+            self.outputs = self.outputs.iloc[:self.max_notes]
         else:
             self.outputs: pd.DataFrame = pd.DataFrame([], columns=self.columns)
             self.outputs = self.outputs.set_index(self.columns[0])
@@ -47,13 +50,10 @@ class FastTextModel:
 
             self.cnt += 1
 
-            if len(self.outputs) > 100_000:
-                self.outputs = self.outputs.iloc[-100_000:]
-
-            if DEBUG and self.cnt % 100 == 99:
-                print(self.outputs)
+            if len(self.outputs) > self.max_notes:
+                self.outputs = self.outputs.iloc[-self.max_notes:]
             
-            if self.cnt > 50_000:
+            if self.cnt > self.save_timing:
                 self.save()
 
                 loop = asyncio.new_event_loop()
@@ -104,9 +104,9 @@ class FastTextModel:
             f.write(lines)
 
         new_model = fasttext.train_unsupervised("./reactions.txt", model="cbow")
-        new_model.save_model("model.bin")
+        new_model.save_model("./model.bin")
 
-        self.model = fasttext.load_model("model.bin")
+        self.model = fasttext.load_model("./model.bin")
     
     def get_word_vector(self, word):
         if word is None:

@@ -9,7 +9,7 @@ from tenacity import retry, wait_fixed, retry_if_exception_type
 from misskey_wrapper import MisskeyWrapper
 
 
-with open("./config.json") as f:
+with open("../config.json") as f:
     config = json.loads(f.read())
 
 TOKEN = config["TOKEN"]

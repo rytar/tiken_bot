@@ -31,6 +31,7 @@ The reference is [here](https://misskey-hub.net/docs/api/streaming).
 def should_renote(note: dict):
     res = requests.post("http://localhost:5001", json=note)
     data = res.json()
+    print(data)
     return data["result"]
 
 def send(url: str, event: str, note: dict):

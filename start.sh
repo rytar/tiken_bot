@@ -23,24 +23,28 @@ docker start redis-stack
 
 # start fastText server
 echo "starting fastText server..."
+cd ./fastText
 screen -dmS fastText
 sleep 1s
-screen -S fastText -X stuff 'uwsgi --ini ./fastText/app.ini'`echo -ne '\015'`
+screen -S fastText -X stuff 'uwsgi --ini ./app.ini'`echo -ne '\015'`
 sleep 5s
 
 # start executor
 echo "initializing executor server..."
-python ./executor/init.py
+cd ../executor
+python ./init.py
 echo "starting executor server..."
 screen -dmS executor
 sleep 1s
-screen -S executor -X stuff 'uwsgi --ini ./executor/app.ini'`echo -ne '\015'`
+screen -S executor -X stuff 'uwsgi --ini ./app.ini'`echo -ne '\015'`
 sleep 2s
 
 # start observer
 echo "starting observer..."
+cd ../observer
 screen -dmS observer
 sleep 1s
-screen -S observer -X stuff 'python ./observer/main.py'`echo -ne '\015'`
+screen -S observer -X stuff 'python ./main.py'`echo -ne '\015'`
+cd ..
 
 echo "successfully started!"
