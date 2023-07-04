@@ -6,15 +6,9 @@ from elasticsearch import Elasticsearch
 from misskey.exceptions import MisskeyAPIException
 from tenacity import retry, wait_fixed, retry_if_exception_type
 
+from config import TOKEN, ES_PASS, DEBUG
 from misskey_wrapper import MisskeyWrapper
 
-
-with open("../config.json") as f:
-    config = json.loads(f.read())
-
-TOKEN = config["TOKEN"]
-ES_PASS = config["ES_PASS"]
-DEBUG = config["DEBUG"]
 
 def get_datetime(createdAt: str):
     return datetime.datetime.strptime(createdAt, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=datetime.timezone.utc)

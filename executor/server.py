@@ -6,16 +6,10 @@ from elasticsearch import Elasticsearch
 from flask import Flask, request
 
 from commands import process_query
+from config import TOKEN, ES_PASS, DEBUG
 from misskey_wrapper import MisskeyWrapper
 from notes import renote
 
-
-with open("../config.json") as f:
-    config = json.loads(f.read())
-
-TOKEN = config["TOKEN"]
-ES_PASS = config["ES_PASS"]
-DEBUG = config["DEBUG"]
 
 # set logger
 logger = logging.getLogger(__name__)
