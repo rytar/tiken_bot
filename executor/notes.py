@@ -30,7 +30,7 @@ def renote(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: Misske
     renoted_ids = [ pickle.loads(key) for key in redis_client.hkeys("notes") ]
     if note["id"] in renoted_ids: return
 
-    logger.info(f"renote: {note['id']}")
+    logger.info(f"should renote: {note['id']}")
 
     redis_client.hset("notes", pickle.dumps(note["id"]), pickle.dumps(note))
     
