@@ -37,6 +37,8 @@ def process(event: str, note: dict):
         return renote(note, redis_client, es, msk)
     elif event == "mention":
         return process_query(note, es, msk)
+    else:
+        return "unkwon event"
 
 app = Flask(__name__)
 
@@ -50,7 +52,7 @@ def root():
 
     status = process(event, note)
 
-    return "accepted", 200
+    return status, 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
