@@ -23,6 +23,7 @@ class MisskeyWrapper:
     @retry(wait=wait_fixed(2), retry=retry_if_exception_type((Timeout, JSONDecodeError, ConnectionError, MisskeyAPIException)))
     def i(self):
         result = self.msk.i()
+        self.logger.info("call i()")
         time.sleep(self.access_cooltime)
         return result
 
@@ -54,6 +55,7 @@ class MisskeyWrapper:
             file_type=file_type,
             exclude_nsfw=exclude_nsfw
         )
+        self.logger.info("get notes")
         time.sleep(self.access_cooltime)
         return result
 
@@ -65,6 +67,7 @@ class MisskeyWrapper:
         
         try:
             result = self.msk.notes_delete(note_id)
+            self.logger.info(f"deleted: {note_id}")
             time.sleep(self.access_cooltime * 2)
             return result
         except MisskeyAPIException as e:
@@ -118,6 +121,7 @@ class MisskeyWrapper:
                 poll_expires_at=poll_expires_at,
                 poll_expired_after=poll_expired_after
             )
+            self.logger.info("note created")
             time.sleep(self.access_cooltime)
             return result
         except MisskeyAPIException as e:
@@ -130,6 +134,7 @@ class MisskeyWrapper:
     def notes_show(self, note_id: str):
         try:
             result = self.msk.notes_show(note_id)
+            self.logger.info("show notes")
             time.sleep(self.access_cooltime)
             return result
         except MisskeyAPIException as e:
