@@ -38,7 +38,7 @@ def send(url: str, event: str, note: dict):
         logger.info(f"mention: {note['id']}")
         res = requests.post(url, json={ "type": event, "note": note })
         status = res.text
-        logger.info(f"note {note['id']}: {status}")
+        logger.info(f"mention {note['id']}: {status}")
 
     elif event == "note":
         if not note["renoteId"] is None and note["text"] is None:
