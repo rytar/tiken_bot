@@ -94,16 +94,13 @@ def process_query(note: dict, es: Elasticsearch, msk: MisskeyWrapper) -> str:
         if hit_cnt == 0:
             result_str = f"検索キーワード`{arg}`に関連するノートが見つかりませんでした。\n"
         else:
-            results = []
-            scores = []
-
-            for hit in res["hits"]["hits"]:
-                scores.append(hit["_score"])
-                results.append(hit["_source"])
+            scores = [ hit["_score"] for hit in res["hits"]["hits"] ]
+            results = [ hit["_source"] for hit in res["hits"]["hits"] ]
             
-            mean = np.mean(scores)
-            std = np.std(scores)
-            cnt = np.sum(np.array(scores) >= mean + 0.5 * std)
+            cnt = np.sum(np.array(scores) >= np.max(scores) * 0.8)
+
+            logger.info(f"hit {hit_cnt} notes")
+            logger.info(f"score: max: {np.max(scores):.3f}, th: {np.max(scores) * 0.8:.3f}, min: {np.min(scores):.3f}")
 
             results = results[:int(cnt)]
             result_ids = [ res["id"] for res in results ]
