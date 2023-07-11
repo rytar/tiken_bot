@@ -19,7 +19,7 @@ screen -S es -X stuff $HOME'/elasticsearch-8.7.1/bin/elasticsearch'`echo -ne '\0
 sleep 30s
 
 # start redis
-docker start redis-stack
+sudo docker start redis-stack
 
 # start fastText server
 echo "starting fastText server..."
