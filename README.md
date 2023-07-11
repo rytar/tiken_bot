@@ -17,6 +17,13 @@ For more information about the function of the bot, please visit [@tiken_bot@mis
 - Docker 24.0.4
 
 # Dependencies
+## Misskey API
+An API token is required to use the Misskey API. The following two permissions are granted to the token.
+- Compose or delete notes
+- View your notifications
+
+The issued token should be set in the `"TOKEN"` field in the `config.json` file.
+
 ## Python
 ```
 $ pip install -r requirements.txt

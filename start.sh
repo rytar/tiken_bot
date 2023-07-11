@@ -32,7 +32,7 @@ sleep 30s
 # start executor
 echo "initializing executor server..."
 cd ../executor
-python ./init.py
+python3 ./init.py
 echo "starting executor server..."
 screen -dmS executor
 sleep 1s
@@ -44,7 +44,7 @@ echo "starting observer..."
 cd ../observer
 screen -dmS observer
 sleep 1s
-screen -S observer -X stuff 'python ./main.py'`echo -ne '\015'`
+screen -S observer -X stuff 'python3 ./main.py'`echo -ne '\015'`
 cd ..
 
 echo "successfully started!"
