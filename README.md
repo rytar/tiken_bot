@@ -1,3 +1,6 @@
+[![MIT licensed][shield-license]](#)
+[shield-license]: https://img.shields.io/badge/license-MIT-blue.svg
+
 # 知見bot (tiken_bot)
 ![img](./data/tiken_bot_image.jpg)
 
@@ -39,3 +42,10 @@ You can use Elasticsearch from the bot by setting this password in the `"ES_PASS
 
 # How to launch
 Run `$ source start.sh` to launch the bot.
+
+# Author
+misskey: [@Rytaryu@misskey.io](https://misskey.io/@Rytaryu)
+
+# License
+tiken_bot is licensed under the [MIT](./LICENSE) license.  
+Copyright &copy; 2023, Rytaryu
