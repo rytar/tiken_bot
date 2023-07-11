@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import requests
+import time
 from websockets.client import connect, WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
 
@@ -28,15 +29,27 @@ The form of messages from the stream as below:
 The reference is [here](https://misskey-hub.net/docs/api/streaming).
 """
 
+last_renote = time.time()
+
+def fire_and_forget(func):
+    def wrapper(*args, **kwargs):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop.run_in_executor(None, func, *args, *kwargs)
+    return wrapper
+
 def should_renote(note: dict):
-    res = requests.post("http://localhost:5001", json=note)
+    res = requests.post("http://localhost:5001/", json=note)
     data = res.json()
     return data["result"]
 
-def send(url: str, event: str, note: dict):
+@fire_and_forget
+def send(url: str, event: str, note: dict | None = None):
+    global last_renote
+
     if event == "mention":
         logger.info(f"mention: {note['id']}")
-        res = requests.post(url, json={ "type": event, "note": note })
+        res = requests.post(url, json={ "event": event, "note": note })
         status = res.text
         logger.info(f"mention {note['id']}: {status}")
 
@@ -45,9 +58,18 @@ def send(url: str, event: str, note: dict):
             note = note["renote"]
         
         if should_renote(note):
-            res = requests.post(url, json={ "type": event, "note": note })
+            res = requests.post(url, json={ "event": event, "note": note })
             status = res.text
             logger.info(f"note {note['id']}: {status}")
+
+            if status == "successfully renoted":
+                last_renote = time.time()
+    
+    elif event == "rerenote":
+        last_renote = time.time()
+        res = requests.post(url, json={ "event": event })
+        status = res.text
+        logger.info(f"rerenote: {status}")
 
 
 async def worker(ws_url: str, channels: dict[str, str]):
@@ -69,6 +91,9 @@ async def worker(ws_url: str, channels: dict[str, str]):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     
+    url = "http://localhost:5000/"
+    rerenote_interval = 60 * 60
+    
     async for ws in connect(ws_url):
         try:
             await connect_channels(ws, channels)
@@ -84,7 +109,10 @@ async def worker(ws_url: str, channels: dict[str, str]):
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
 
-                    loop.run_in_executor(None, send, "http://localhost:5000", event, note)
+                    send(url, event, note)
+                
+                if time.time() - last_renote > rerenote_interval:
+                    send(url, "rerenote")
 
         except ConnectionClosed as e:
             logger.error(e)

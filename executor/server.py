@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import redis
@@ -7,7 +6,7 @@ from flask import Flask, request
 
 from commands import process_query
 from misskey_wrapper import MisskeyWrapper
-from notes import renote
+from notes import renote, rerenote
 
 
 with open("../config.json") as f:
@@ -32,23 +31,30 @@ es = Elasticsearch(
 
 msk = MisskeyWrapper("misskey.io", i=TOKEN, DEBUG=DEBUG)
 
-def process(event: str, note: dict):
+def process(event: str, note: dict | None):
     if event == "note":
         return renote(note, redis_client, es, msk)
     elif event == "mention":
         return process_query(note, es, msk)
+    elif event == "rerenote":
+        return rerenote(redis_client, msk)
     else:
-        return "unkwon event"
+        return "unknown event"
 
 app = Flask(__name__)
 
 @app.route('/', methods=["POST"])
-def root():
+def post():
     req = request.get_json()
-    event = req["type"]
-    note = req["note"]
+    event = req["event"]
 
-    logger.info(f"{event}: {note['id']}")
+    logger.info(f"event: {event}")
+
+    if event == "rerenote":
+        note = None
+    else:
+        note = req["note"]
+        logger.info(f"{event}: {note['id']}")
 
     status = process(event, note)
 
