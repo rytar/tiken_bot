@@ -1,9 +1,11 @@
+# 知見bot (tiken_bot)
 [![MIT licensed][shield-license]](#)
 
 [shield-license]: https://img.shields.io/badge/license-MIT-blue.svg
 
-# 知見bot (tiken_bot)
-![img](./data/tiken_bot_image.jpg | width=50)
+<p align="center">
+    <img src="./data/tiken_bot_image.jpg" width="512" />
+</p>
 
 # Overview
 The tiken_bot is a bot account on misskey.io.
