@@ -1,9 +1,9 @@
-# 知見bot (@tiken_bot@misskey.io)
+# 知見bot (tiken_bot)
 ![img](./data/tiken_bot_image.jpg)
 
 # Overview
 The tiken_bot is a bot account on misskey.io.
-For more information about the function of the bot, please visit @tiken_bot@misskey.io.
+For more information about the function of the bot, please visit [@tiken_bot@misskey.io](https://misskey.io/@tiken_bot).
 
 # Environment
 - Ubuntu 22.04
