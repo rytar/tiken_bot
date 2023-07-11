@@ -16,7 +16,7 @@ echo "starting Elasticsearch..."
 screen -dmS es
 sleep 1s
 screen -S es -X stuff $HOME'/elasticsearch-8.7.1/bin/elasticsearch'`echo -ne '\015'`
-sleep 5s
+sleep 30s
 
 # start redis
 docker start redis-stack
@@ -27,7 +27,7 @@ cd ./fastText
 screen -dmS fastText
 sleep 1s
 screen -S fastText -X stuff 'uwsgi --ini ./app.ini'`echo -ne '\015'`
-sleep 5s
+sleep 30s
 
 # start executor
 echo "initializing executor server..."
