@@ -59,6 +59,7 @@ def rerenote(redis_client: redis.Redis, msk: MisskeyWrapper):
     msk.notes_delete(note_id)
 
     logger.info(f"rerenote {picked_id}")
-    msk.notes_create(renote_id=picked_id)
+    created_note = msk.notes_create(renote_id=picked_id)
+    redis_client.hset("renotes", pickle.dumps(picked_id), pickle.dumps(created_note["id"]))
 
     return f"successfully rerenoted {picked_id}"
