@@ -76,6 +76,7 @@ def init(redis_client: redis.StrictRedis, es: Elasticsearch, msk: MisskeyWrapper
                     msk.notes_delete(note["id"])
                 else:
                     redis_client.hset("notes", pickle.dumps(renoted_note["id"]), pickle.dumps(renoted_note))
+                    redis_client.hset("renotes", pickle.dumps(renoted_note["id"]), pickle.dumps(note["id"]))
 
                     text = get_text(renoted_note)
                     es.index(index="notes", id=renoted_note["id"], document={"text": text, "id": renoted_note["id"]})
