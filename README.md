@@ -1,9 +1,15 @@
-# 知見bot (@tiken_bot@misskey.io)
-![img](./data/tiken_bot_image.jpg)
+# 知見bot (tiken_bot)
+[![MIT licensed][shield-license]](#)
+
+[shield-license]: https://img.shields.io/badge/license-MIT-blue.svg
+
+<p align="center">
+    <img src="./data/tiken_bot_image.jpg" width="512" />
+</p>
 
 # Overview
 The tiken_bot is a bot account on misskey.io.
-For more information about the function of the bot, please visit @tiken_bot@misskey.io.
+For more information about the function of the bot, please visit [@tiken_bot@misskey.io](https://misskey.io/@tiken_bot).
 
 # Environment
 - Ubuntu 22.04
@@ -39,3 +45,10 @@ You can use Elasticsearch from the bot by setting this password in the `"ES_PASS
 
 # How to launch
 Run `$ source start.sh` to launch the bot.
+
+# Author
+misskey: [@Rytaryu@misskey.io](https://misskey.io/@Rytaryu)
+
+# License
+tiken_bot is licensed under the [MIT](./LICENSE) license.  
+Copyright &copy; 2023, Rytaryu
