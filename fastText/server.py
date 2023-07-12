@@ -31,13 +31,13 @@ def root():
     if action == "get_word_vector":
         word = query["word"]
         
-        logger.info(f"{action}: {word}")
+        # logger.info(f"{action}: {word}")
 
         return jsonify({ "result": fastText.get_word_vector(word).tolist() }), 200
     
     if action == "get_dimension":
-        logger.info(f"{action}")
-        
+        # logger.info(f"{action}")
+
         return jsonify({ "result": fastText.model.get_dimension() }), 200
 
     return jsonify({ "result": "no action" }), 200
