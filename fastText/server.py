@@ -1,9 +1,6 @@
 import logging
-import numpy as np
 from flask import Flask, request, jsonify
 from fastText import FastTextModel
-
-from utils import get_reaction_name
 
 
 # set logger
@@ -12,76 +9,38 @@ logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d
 
 fastText = FastTextModel(logger=logger)
 
-def get_reaction_vector(note: dict):
-    total: int = np.sum(list(note["reactions"].values()))
-    results = np.zeros(fastText.model.get_dimension(), dtype=np.float32)
-
-    for reaction, cnt in note["reactions"].items():
-        name = get_reaction_name(reaction)
-        results += fastText.get_word_vector(name) * int(cnt) / total
-    
-    return results
-
-def get_similarity(note: dict):
-    total: int = np.sum(list(note["reactions"].values()))
-
-    positive_reactions = [
-        "tasukaru",
-        "igyo",
-        "naruhodo",
-        "arigato",
-        "benri",
-        "sitteokou",
-        "otoku"
-    ]
-
-    negative_reactions = [
-        "fakenews",
-        "kaibunsyo_itadakimasita",
-        "kusa",
-        "thinking_face",
-        "sonnakotonai",
-        "dosukebe",
-    ]
-
-    reaction_vec = get_reaction_vector(note)
-
-    target_vec = fastText.get_word_vector("tiken")
-    target_norm = np.linalg.norm(target_vec)
-
-    for except_reaction in negative_reactions:
-        target_vec -= fastText.get_word_vector(except_reaction) / len(negative_reactions) * 1.2
-
-    for add_reaction in positive_reactions:
-        target_vec += fastText.get_word_vector(add_reaction) / len(positive_reactions) * 2.5
-
-    target_vec *= target_norm / np.linalg.norm(target_norm)
-
-    score = reaction_vec @ target_vec / (np.linalg.norm(reaction_vec) * np.linalg.norm(target_vec))
-
-    return score * (total - 1) / total
-
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 @app.route('/', methods=["POST"])
 def root():
-    note = request.get_json()
+    query = request.get_json()
 
-    if not note["reactions"]:
-        return jsonify({ "result": False, "similarity": 0.0 }), 200
+    action = query["action"]
 
-    fastText.update(note)
-    similarity: float = get_similarity(note)
-    res = bool(similarity >= np.cos(np.pi / 6))
+    if action == "update":
+        note = query["note"]
+        
+        logger.info(f"{action}: {note['id']}")
 
-    if res:
-        logger.info(f"note {note['id']} should be renoted: {similarity}")
-    else:
-        logger.info(f"note {note['id']} should NOT be renoted: {similarity}")
+        fastText.update(note)
 
-    return jsonify({ "result": res, "similarity": similarity }), 200
+        return jsonify({ "result": True }), 200
+    
+    if action == "get_word_vector":
+        word = query["word"]
+        
+        logger.info(f"{action}: {word}")
+
+        return jsonify({ "result": fastText.get_word_vector(word).tolist() }), 200
+    
+    if action == "get_dimension":
+        logger.info(f"{action}")
+        
+        return jsonify({ "result": fastText.model.get_dimension() }), 200
+
+    return jsonify({ "result": "no action" }), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
