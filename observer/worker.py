@@ -1,6 +1,9 @@
 import asyncio
+import emoji
 import json
 import logging
+import numpy as np
+import regex
 import requests
 import time
 from websockets.client import connect, WebSocketClientProtocol
@@ -38,10 +41,96 @@ def fire_and_forget(func):
         return loop.run_in_executor(None, func, *args, *kwargs)
     return wrapper
 
+
+def fastText(action: str, **kwargs):
+    fastText_URL = "http://localhost:5001/"
+    
+    res = requests.post(fastText_URL, json={ "action": action, **kwargs })
+    return res.json()["result"]
+
+def get_word_vector(word: str):
+    res = fastText("get_word_vector", word=word)
+    return np.asarray(res)
+
+@fire_and_forget
+def update(note: dict):
+    fastText("update", note=note)
+
+
+def get_reaction_name(reaction: str):
+    m = regex.fullmatch(r"^:([^:@]+)@([^@:]+):$", reaction)
+    if m:
+        return m.groups()[0]
+    elif emoji.is_emoji(reaction):
+        return emoji.demojize(reaction)[1:-1]
+    else:
+        return None
+
+def get_reaction_vector(note: dict):
+    total: int = np.sum(list(note["reactions"].values()))
+    results = np.zeros(fastText("get_dimension"), dtype=np.float32)
+
+    for reaction, cnt in note["reactions"].items():
+        name = get_reaction_name(reaction)
+        results += get_word_vector(name) * int(cnt) / total
+    
+    return results
+
+def get_similarity(note: dict):
+    total: int = np.sum(list(note["reactions"].values()))
+
+    positive_reactions = [
+        "tasukaru",
+        "igyo",
+        "naruhodo",
+        "arigato",
+        "benri",
+        "sitteokou",
+        "otoku"
+    ]
+
+    negative_reactions = [
+        "fakenews",
+        "kaibunsyo_itadakimasita",
+        "kusa",
+        "thinking_face",
+        "sonnakotonai",
+        "dosukebe",
+    ]
+
+    reaction_vec = get_reaction_vector(note)
+
+    target_vec = get_word_vector("tiken")
+    target_norm = np.linalg.norm(target_vec)
+
+    for except_reaction in negative_reactions:
+        target_vec -= get_word_vector(except_reaction) / len(negative_reactions) * 1.2
+
+    for add_reaction in positive_reactions:
+        target_vec += get_word_vector(add_reaction) / len(positive_reactions) * 2.5
+
+    target_vec *= target_norm / np.linalg.norm(target_norm)
+
+    score = reaction_vec @ target_vec / (np.linalg.norm(reaction_vec) * np.linalg.norm(target_vec))
+
+    return score * (total - 1) / total
+
 def should_renote(note: dict):
-    res = requests.post("http://localhost:5001/", json=note)
-    data = res.json()
-    return data["result"]
+    if not note["reactions"]:
+        return False
+    
+    similarity: float = get_similarity(note)
+    res = bool(similarity >= np.cos(np.pi / 6))
+
+    if res:
+        logger.info(f"{note['id']} should be renote: {similarity}")
+    else:
+        logger.debug(f"{note['id']} should not be renote: {similarity}")
+
+    update(note)
+
+    return res
+
 
 @fire_and_forget
 def send(url: str, event: str, note: dict | None = None):

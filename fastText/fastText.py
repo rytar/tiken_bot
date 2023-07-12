@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import fasttext
 import json
 import logging
@@ -7,6 +6,7 @@ import numpy as np
 import os
 import pandas as pd
 import regex
+import time
 
 from utils import get_text, get_reaction_name
 
@@ -22,9 +22,11 @@ class FastTextModel:
         self.save_file = output
         self.interval = interval
 
-        self.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
         self.max_notes = 100_000
-        self.save_timing = 50_000
+        self.save_timing = 50
+
+        self.processing = False
+        self.task = []
 
         self.columns = [ "id", "text", "reactions" ]
         if os.path.exists(self.save_file):
@@ -40,40 +42,50 @@ class FastTextModel:
             self.logger.info("FastTextModel started")
             
         self.cnt = 0
-        self.model = None
-        asyncio.run(self.update_model())
+        if os.path.exists("./model.bin"):
+            self.model = fasttext.load_model("./model.bin")
+        else:
+            self.model = None
+            asyncio.run(self.update_model())
 
     def update(self, note: dict):
         if note is not None and note["reactions"]:
             s = [ get_text(note), ' '.join([ f"{get_reaction_name(k)}:{v}" for k, v in note["reactions"].items() if get_reaction_name(k) ]) ]
-            if note["id"] in self.outputs.index:
-                self.outputs = self.outputs.drop(index=note["id"])
-                
-            try:
-                self.outputs.loc[note["id"]] = s
-            except Exception as e:
-                self.logger.info(f"{note['id']}: {s}")
-                self.logger.error(f"{note['id']}: {e}")
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_in_executor(None, self.process_task, note["id"], s)
 
             self.cnt += 1
-
-            if len(self.outputs) > self.max_notes:
-                self.outputs = self.outputs.iloc[-self.max_notes:]
             
             if self.cnt > self.save_timing:
-                self.save()
+                loop.run_in_executor(None, self.process_task, None, "save")
+    
+    def process_task(self, id, s):
+        if len(self.task) == 0: return
 
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_in_executor(None, self.update_model)
+        while self.processing: time.sleep(0.1)
+
+        self.processing = True
+
+        if id is None:
+            self.save()
+            asyncio.run(self.update_model())
+
+            return
+        
+        self.logger.info(f"register {id}")
+
+        self.outputs.loc[id] = s
+        if len(self.outputs) > self.max_notes:
+            self.outputs = self.outputs.iloc[-self.max_notes:]
+
+        self.processing = False
     
     def save(self):
-        now = datetime.datetime.now(tz=datetime.timezone.utc)
-        if (now - self.datetime).seconds > self.interval:
-            self.datetime = now
-            self.outputs.to_csv(self.save_file, index=True, header=True)
-            if self.logger:
-                self.logger.info("save data")
+        self.outputs.to_csv(self.save_file, index=True, header=True)
+        if self.logger:
+            self.logger.info("save data")
 
     def get_data(self):
         return self.outputs
