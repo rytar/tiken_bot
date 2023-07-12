@@ -49,7 +49,11 @@ class FastTextModel:
             if note["id"] in self.outputs.index:
                 self.outputs = self.outputs.drop(index=note["id"])
                 
-            self.outputs.loc[note["id"]] = s
+            try:
+                self.outputs.loc[note["id"]] = s
+            except Exception as e:
+                self.logger.info(f"{note['id']}: {s}")
+                self.logger.error(f"{note['id']}: {e}")
 
             self.cnt += 1
 
