@@ -92,7 +92,7 @@ async def worker(ws_url: str, channels: dict[str, str]):
     asyncio.set_event_loop(loop)
     
     url = "http://localhost:5000/"
-    rerenote_interval = 60 * 60
+    rerenote_interval = 60 * 60 * 3
     
     async for ws in connect(ws_url):
         try:
