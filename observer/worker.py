@@ -88,8 +88,6 @@ async def worker(ws_url: str, channels: dict[str, str]):
         Return:
             None
     """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
     
     url = "http://localhost:5000/"
     rerenote_interval = 60 * 60 * 3
