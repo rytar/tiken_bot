@@ -23,10 +23,9 @@ class FastTextModel:
         self.interval = interval
 
         self.max_notes = 100_000
-        self.save_timing = 50
+        self.save_timing = 50_000
 
         self.processing = False
-        self.task = []
 
         self.columns = [ "id", "text", "reactions" ]
         if os.path.exists(self.save_file):
@@ -62,8 +61,6 @@ class FastTextModel:
                 loop.run_in_executor(None, self.process_task, None, "save")
     
     def process_task(self, id, s):
-        if len(self.task) == 0: return
-
         while self.processing: time.sleep(0.1)
 
         self.processing = True
@@ -73,12 +70,12 @@ class FastTextModel:
             asyncio.run(self.update_model())
 
             return
-        
-        self.logger.info(f"register {id}")
 
         self.outputs.loc[id] = s
         if len(self.outputs) > self.max_notes:
             self.outputs = self.outputs.iloc[-self.max_notes:]
+
+        # self.logger.info(f"register: {id}")
 
         self.processing = False
     
