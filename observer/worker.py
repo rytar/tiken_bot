@@ -179,7 +179,7 @@ async def worker(ws_url: str, channels: dict[str, str]):
     """
     
     url = "http://localhost:5000/"
-    rerenote_interval = 60 * 60 * 3
+    rerenote_interval = 60 * 60 * 8 - 60 * 20 - 40
     
     async for ws in connect(ws_url):
         try:
