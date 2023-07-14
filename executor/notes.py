@@ -40,14 +40,12 @@ def renote(note: dict, redis_client: redis.Redis, es: Elasticsearch, msk: Misske
     text = get_text(note)
     es.index(index="notes", id=note["id"], document={"text": text, "id": note["id"]})
     
-    created_note = msk.notes_create(renote_id=note["id"])
+    res = msk.notes_create(renote_id=note["id"])
+    created_note = res["createdNote"]
 
-    try:
-        redis_client.hset("renotes", pickle.dumps(note["id"]), pickle.dumps(created_note["id"]))
+    redis_client.hset("renotes", pickle.dumps(note["id"]), pickle.dumps(created_note["id"]))
 
-        logger.info(f"{created_note['id']} renoted: {note['id']}")
-    except Exception as e:
-        logger.error(e)
+    logger.info(f"{created_note['id']} renoted: {note['id']}")
 
     return "successfully renoted"
 
@@ -61,13 +59,11 @@ def rerenote(redis_client: redis.Redis, msk: MisskeyWrapper):
     logger.info(f"delete renote {note_id} that be referring to {picked_id}")
     msk.notes_delete(note_id)
 
-    created_note = msk.notes_create(renote_id=picked_id)
+    res = msk.notes_create(renote_id=picked_id)
+    created_note = res["createdNote"]
 
-    try:
-        redis_client.hset("renotes", pickle.dumps(picked_id), pickle.dumps(created_note["id"]))
+    redis_client.hset("renotes", pickle.dumps(picked_id), pickle.dumps(created_note["id"]))
 
-        logger.info(f"{created_note['id']} rerenote {picked_id}")
-    except Exception as e:
-        logger.error(e)
+    logger.info(f"{created_note['id']} rerenote {picked_id}")
 
     return f"successfully rerenoted {picked_id}"
