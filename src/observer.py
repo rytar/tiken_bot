@@ -1,13 +1,14 @@
 import asyncio
-import emoji
 import json
 import logging
 import numpy as np
-import regex
-import requests
 import time
 from websockets.client import connect, WebSocketClientProtocol
 from websockets.exceptions import ConnectionClosed
+
+from execute import init, renote, rerenote, process_query
+from fastText import FastTextModel
+from utils import fire_and_forget, get_reaction_name
 
 
 # set logger
@@ -32,47 +33,17 @@ The form of messages from the stream as below:
 The reference is [here](https://misskey-hub.net/docs/api/streaming).
 """
 
+fastText = FastTextModel()
+
 last_renote = time.time()
-
-def fire_and_forget(func):
-    def wrapper(*args, **kwargs):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        return loop.run_in_executor(None, func, *args, *kwargs)
-    return wrapper
-
-
-def fastText(action: str, **kwargs):
-    fastText_URL = "http://localhost:5001/"
-    
-    res = requests.post(fastText_URL, json={ "action": action, **kwargs })
-    return res.json()["result"]
-
-def get_word_vector(word: str):
-    res = fastText("get_word_vector", word=word)
-    return np.asarray(res)
-
-@fire_and_forget
-def update(note: dict):
-    fastText("update", note=note)
-
-
-def get_reaction_name(reaction: str):
-    m = regex.fullmatch(r"^:([^:@]+)@([^@:]+):$", reaction)
-    if m:
-        return m.groups()[0]
-    elif emoji.is_emoji(reaction):
-        return emoji.demojize(reaction)[1:-1]
-    else:
-        return None
 
 def get_reaction_vector(note: dict):
     total: int = np.sum(list(note["reactions"].values()))
-    results = np.zeros(fastText("get_dimension"), dtype=np.float32)
+    results = np.zeros(fastText.model.get_dimension(), dtype=np.float32)
 
     for reaction, cnt in note["reactions"].items():
         name = get_reaction_name(reaction)
-        results += get_word_vector(name) * int(cnt) / total
+        results += fastText.get_word_vector(name) * int(cnt) / total
     
     return results
 
@@ -100,14 +71,14 @@ def get_similarity(note: dict):
 
     reaction_vec = get_reaction_vector(note)
 
-    target_vec = get_word_vector("tiken")
+    target_vec = fastText.get_word_vector("tiken")
     target_norm = np.linalg.norm(target_vec)
 
     for except_reaction in negative_reactions:
-        target_vec -= get_word_vector(except_reaction) / len(negative_reactions) * 1.2
+        target_vec -= fastText.get_word_vector(except_reaction) / len(negative_reactions) * 1.2
 
     for add_reaction in positive_reactions:
-        target_vec += get_word_vector(add_reaction) / len(positive_reactions) * 2.5
+        target_vec += fastText.get_word_vector(add_reaction) / len(positive_reactions) * 2.5
 
     target_vec *= target_norm / np.linalg.norm(target_norm)
 
@@ -127,41 +98,37 @@ def should_renote(note: dict):
     else:
         logger.debug(f"{note['id']} should not be renote: {similarity}")
 
-    update(note)
+    fastText.update(note)
 
     return res
 
 
 @fire_and_forget
-def send(url: str, event: str, note: dict | None = None):
+def send(event: str, note: dict | None = None):
     global last_renote
 
     if event == "mention":
-        logger.info(f"mention: {note['id']}")
-        res = requests.post(url, json={ "event": event, "note": note })
-        status = res.text
-        logger.info(f"mention {note['id']}: {status}")
+        res = process_query(note)
+        logger.info(f"mention {note['id']}: {res}")
 
     elif event == "note":
         if not note["renoteId"] is None and note["text"] is None:
             note = note["renote"]
         
         if should_renote(note):
-            res = requests.post(url, json={ "event": event, "note": note })
-            status = res.text
-            logger.info(f"note {note['id']}: {status}")
+            res = renote(note)
+            logger.info(f"note {note['id']}: {res}")
 
-            if status == "successfully renoted":
+            if res == "successfully renoted":
                 last_renote = time.time()
     
     elif event == "rerenote":
         last_renote = time.time()
-        res = requests.post(url, json={ "event": event })
-        status = res.text
-        logger.info(f"rerenote: {status}")
+        res = rerenote()
+        logger.info(f"rerenote: {res}")
 
 
-async def worker(ws_url: str, channels: dict[str, str]):
+async def observer(ws_url: str, channels: dict[str, str]):
     """
         The worker function which connect to the websocket and read the stream.
 
@@ -178,11 +145,12 @@ async def worker(ws_url: str, channels: dict[str, str]):
             None
     """
     
-    url = "http://localhost:5000/"
     rerenote_interval = 60 * 60 * 8 - 60 * 20 - 40
     
     async for ws in connect(ws_url):
         try:
+            init()
+
             await connect_channels(ws, channels)
 
             async for data in ws:
@@ -196,10 +164,10 @@ async def worker(ws_url: str, channels: dict[str, str]):
                 if channel == "main" and event == "mention" or event == "note":
                     note: dict = msg["body"]["body"]
 
-                    send(url, event, note)
+                    send(event, note)
                 
                 if time.time() - last_renote > rerenote_interval:
-                    send(url, "rerenote")
+                    send("rerenote")
 
         except ConnectionClosed as e:
             logger.error(e)
@@ -230,4 +198,4 @@ if __name__ == "__main__":
     channels = {}
     channels[str(uuid4())] = "hybridTimeline"
 
-    asyncio.run(worker(ws_url, channels))
+    asyncio.run(observer(ws_url, channels))

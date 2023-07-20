@@ -1,19 +1,19 @@
 import asyncio
 import json
 import logging
+logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename="./tiken_bot.log", encoding="utf-8", level=logging.INFO)
 from uuid import uuid4
 
-from worker import worker
+from observer import observer
 
 
-with open("../config.json") as f:
+with open("./config.json") as f:
     config = json.loads(f.read())
 
 TOKEN = config["TOKEN"]
 
 # set logger
 logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s: lines %(lineno)d: %(message)s", filename="./observer.log", encoding="utf-8", level=logging.INFO)
 
 async def main():
     ws_url = f"wss://misskey.io/streaming?i={TOKEN}"
@@ -23,7 +23,7 @@ async def main():
         str(uuid4()): "main",
     }
 
-    await worker(ws_url, channels)
+    await observer(ws_url, channels)
 
 if __name__ == "__main__":
     try:

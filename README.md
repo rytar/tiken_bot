@@ -4,7 +4,7 @@
 [shield-license]: https://img.shields.io/badge/license-MIT-blue.svg
 
 <p align="center">
-    <img src="./data/tiken_bot_image.jpg" width="512" />
+    <img src="./tiken_bot_image.jpg" width="512" />
 </p>
 
 # Overview
