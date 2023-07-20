@@ -9,7 +9,7 @@ export SCREENDIR=$HOME/.screendir
 
 source ./stop.sh
 
-rm ./*/*.log
+rm ./*.log
 
 # start elasticsearch
 echo "starting Elasticsearch..."
@@ -21,30 +21,9 @@ sleep 30s
 # start redis
 sudo docker start redis-stack
 
-# start fastText server
-echo "starting fastText server..."
-cd ./fastText
-screen -dmS fastText
+# start
+screen -dmS tiken
 sleep 1s
-screen -S fastText -X stuff 'uwsgi --ini ./app.ini'`echo -ne '\015'`
-sleep 30s
-
-# start executor
-echo "initializing executor server..."
-cd ../executor
-python3 ./init.py
-echo "starting executor server..."
-screen -dmS executor
-sleep 1s
-screen -S executor -X stuff 'uwsgi --ini ./app.ini'`echo -ne '\015'`
-sleep 2s
-
-# start observer
-echo "starting observer..."
-cd ../observer
-screen -dmS observer
-sleep 1s
-screen -S observer -X stuff 'python3 ./main.py'`echo -ne '\015'`
-cd ..
+screen -S tiken -X stuff 'python3 ./src/main.py'`echo -ne '\015'`
 
 echo "successfully started!"
