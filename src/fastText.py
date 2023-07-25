@@ -57,6 +57,7 @@ class FastTextModel:
             self.cnt += 1
             
             if self.cnt > self.save_timing:
+                self.cnt = 0
                 self.save()
                 asyncio.run(self.update_model)
             
